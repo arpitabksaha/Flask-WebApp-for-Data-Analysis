@@ -11,12 +11,25 @@ from scipy.stats import kendalltau, pearsonr, spearmanr
 import math
 import statsmodels.api as sm
 import seaborn as sns
+import statistics
 
 app = Flask(__name__)
 
-#Notes -2)Add histogram 3)Add bar chart 4) Build heatmap from cor_data
+#Notes - 3)Add bar chart 4) Build heatmap from cor_data
 #variable               variable2  correlation correlation_label(imp)
 #1   ClosePrice                 Acreage    -0.101379             -0.10
+
+
+
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        import numpy as np
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+from mpld3 import _display
+_display.NumpyEncoder = NumpyEncoder
+
 
 @app.route('/', methods=['GET','POST'])
 def upload():
@@ -165,9 +178,6 @@ def upload():
         print(Combined_table)
         #cor_data.set_index('variable',inplace=True)
 
-
-
-
         fig1, ax1 = plt.subplots()
         x1 = df_clean.EstFinAbvGrdSqFt
         #x1CI = df_clean.EstFinAbvGrdSqFt.to_numpy()
@@ -232,7 +242,6 @@ def upload():
         slope4, intercept4, r_value4, p_value4, std_err4 = stats.linregress(x4, y4)
         sns.regplot(x="YearRemodeled", y="ClosePrice", data=df_clean, ax=ax4,truncate=True, scatter_kws={"color": "#1A5276"}, line_kws={"color": "red","alpha":1});
 
-
         #scatter4 = ax4.scatter(x4, y4)
         #line4 = slope4 * x4 + intercept4
         #plt.plot(x4, line4, 'r', label='y={:.2f}x+{:.2f}'.format(slope4, intercept4))
@@ -243,9 +252,61 @@ def upload():
         ax4.set_title("Scatter Plot for Year Remodeled and Reported Sales Price", size=20)
         json04 = json.dumps(mpld3.fig_to_dict(fig4))
 
+        # Histogram plot
+        fig_h1, ax_h1 = plt.subplots()
+        mean = df_clean['ClosePrice'].mean()
+        ax_h1 = sns.distplot(df_clean.ClosePrice)
+        ax_h1.axvline(mean, color='r', linestyle='-')
+        json_h1 = json.dumps(mpld3.fig_to_dict(fig_h1))
+
+        fig_h2, ax_h2 = plt.subplots()
+        mean2 = df_clean['EstFinAbvGrdSqFt'].mean()
+        ax_h2 = sns.distplot(df_clean.EstFinAbvGrdSqFt)
+        ax_h2.axvline(mean2, color='r', linestyle='-')
+        json_h2 = json.dumps(mpld3.fig_to_dict(fig_h2))
+
+        fig_bar1, ax_bar1 = plt.subplots()
+        keys1 = list(df_clean.BathsFull)
+        values1 = list(df_clean.ClosePrice)
+        ax_bar1 = plt.bar(keys1, values1, width=0.5)
+        #mean_bar1 = df_clean['ClosePrice'].mean()
+        #ax_bar1.axvline(mean_bar1, color='r', linestyle='-')
+        #print(df_clean['BathsFull'])
+        plt.xticks([0.0,1.0,2.0,3.0,4.0])
+        plt.xlabel("Number of Full Bathrooms")
+        plt.ylabel("Reported Sales Price($)")
+        fig_bar1 = ax_bar1[0].figure
+        json_bar1 = json.dumps(mpld3.fig_to_dict(fig_bar1))
+        #bar_chart = mpld3.fig_to_html(fig_bar1)
+        #print(df_clean.dtypes)
+        #sns.barplot(x='BathsHalf', y='ClosePrice', data=df_clean, ax=ax_bar1)
+        #ax_bar1 = df_clean.plot.bar(x='BathsHalf', y='ClosePrice' )
+        #json_bar1 = json.dumps(mpld3.fig_to_dict(fig_bar1))
+
+        fig_bar2, ax_bar2 = plt.subplots()
+        keys2 = list(df_clean.BathsHalf)
+        values2 = list(df_clean.ClosePrice)
+        ax_bar2 = plt.bar(keys2, values2, width=0.5)
+        plt.xticks([0.0, 1.0, 2.0, 3.0, 4.0])
+        plt.xlabel("Number of Half Bathrooms")
+        plt.ylabel("Reported Sales Price($)")
+        fig_bar2 = ax_bar2[0].figure
+        json_bar2 = json.dumps(mpld3.fig_to_dict(fig_bar2))
+
+        fig_bar3, ax_bar3 = plt.subplots()
+        keys3 = list(df_clean.BedsTotal)
+        values3 = list(df_clean.ClosePrice)
+        ax_bar3 = plt.bar(keys3, values3, width=0.5)
+        plt.xticks([0.0, 1.0, 2.0, 3.0, 4.0])
+        plt.xlabel("Number of Bedrooms")
+        plt.ylabel("Reported Sales Price($)")
+        fig_bar3 = ax_bar3[0].figure
+        json_bar3 = json.dumps(mpld3.fig_to_dict(fig_bar3))
+
+
         #summary.to_html(classes='male')
 
-        return render_template('upload.html', tables=[Combined_table.to_html(classes='male')], json01=json01, json02=json02, json03=json03, json04=json04, PercentageofDSaleswithSellerConcessions=PercentageofDSaleswithSellerConcessions, AverageSellerConcessionAmount=AverageSellerConcessionAmount,AverageSellerConcessionPercent=AverageSellerConcessionPercent,MedianSellerConcessionAmount=MedianSellerConcessionAmount)
+        return render_template('upload.html', tables=[Combined_table.to_html(classes='male')], json01=json01, json02=json02, json03=json03, json04=json04, json_h1=json_h1,json_h2=json_h2,json_bar1=json_bar1,json_bar2=json_bar2,json_bar3=json_bar3, PercentageofDSaleswithSellerConcessions=PercentageofDSaleswithSellerConcessions, AverageSellerConcessionAmount=AverageSellerConcessionAmount,AverageSellerConcessionPercent=AverageSellerConcessionPercent,MedianSellerConcessionAmount=MedianSellerConcessionAmount)
     return render_template('upload.html')
 
 

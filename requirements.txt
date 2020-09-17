@@ -17,3 +17,4 @@ scipy
 sklearn
 statsmodels
 seaborn
+git+git://github.com/mpld3/mpld3@master#egg=mpld3
