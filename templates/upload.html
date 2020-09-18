@@ -46,11 +46,13 @@
     <div align="center" id="fig02"></div>
     <div align="center" id="fig03"></div>
     <div align="center" id="fig04"></div>
-    <div align="center" id="json_h1"></div>
-    <div align="center" id="json_h2"></div>
     <div align="center" id="json_bar1"></div>
     <div align="center" id="json_bar2"></div>
     <div align="center" id="json_bar3"></div>
+    <div align="center" id="json_h1"></div>
+    <div align="center" id="json_h2"></div>
+    <div align="center" id="json_hm"></div>
+
 </div>
 
 
@@ -64,6 +66,7 @@
   var json_bar1 = {{ json_bar1|safe }};
   var json_bar2 = {{ json_bar2|safe }};
   var json_bar3 = {{ json_bar3|safe }};
+  var json_hm = {{ json_hm|safe }};
 
   mpld3.draw_figure("fig01", json01);
   mpld3.draw_figure("fig02", json02);
@@ -74,6 +77,7 @@
   mpld3.draw_figure("json_bar1", json_bar1);
   mpld3.draw_figure("json_bar2", json_bar2);
   mpld3.draw_figure("json_bar3", json_bar3);
+  mpld3.draw_figure("json_hm", json_hm);
 
 </script>
 

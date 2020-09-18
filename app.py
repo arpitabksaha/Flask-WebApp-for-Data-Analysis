@@ -47,7 +47,7 @@ def upload():
 
         df_clean = df_clean[~((df_clean < (Q1 - 1.5 * IQR)) | (df_clean > (Q3 + 1.5 * IQR))).any(axis=1)]
         df_clean = df_clean.dropna(axis=1, how='all')
-        print(df_clean.columns)
+        #print(df_clean.columns)
         #print(cat_df)
 
         # calculating percentage of sales with seller concessions
@@ -90,10 +90,10 @@ def upload():
         cor_data = cor_data[cor_data['variable'] == 'ClosePrice']
         cor_data = cor_data[cor_data['variable2'] != 'ClosePrice']
         cor_datatable = cor_data.copy()
-        print(cor_data)
+        #print(cor_data)
         cor_datatable.rename(columns={'variable2': 'Dimension', 'correlation_label': 'Correlation'}, inplace=True)
-        print("cor_data")
-        print(cor_data)
+        #print("cor_data")
+        #print(cor_data)
         df_suffix = pd.merge(cor_data_pval, cor_datatable, left_on='variable2', right_on='Dimension', how='outer',
                              suffixes=('_left', '_right'))
         df_suffix_p = df_suffix[['Dimension', 'pvalues', 'Correlation', 'SignificantYN']]
@@ -175,7 +175,7 @@ def upload():
         Combined_table['Adjusted Tweak Amount'] = '$' + Combined_table['Adjusted Tweak Amount'].astype(str)
         Combined_table.set_index('Features', inplace=True)
 
-        print(Combined_table)
+        #print(Combined_table)
         #cor_data.set_index('variable',inplace=True)
 
         fig1, ax1 = plt.subplots()
@@ -189,7 +189,7 @@ def upload():
         #est = sm.OLS(y1CI, x1CI)
         #est2 = est.fit()
         #ci1 = est2.conf_int(alpha=0.05, cols=None)
-        print(x1.to_numpy())
+        #print(x1.to_numpy())
         #scatter = ax1.scatter(x1,y1)
         line1 = slope1 * x1 + intercept1
         #plt.plot(x1, line1, 'r', label='y={:.2f}x+{:.2f}'.format(slope1, intercept1))
@@ -252,18 +252,6 @@ def upload():
         ax4.set_title("Scatter Plot for Year Remodeled and Reported Sales Price", size=20)
         json04 = json.dumps(mpld3.fig_to_dict(fig4))
 
-        # Histogram plot
-        fig_h1, ax_h1 = plt.subplots()
-        mean = df_clean['ClosePrice'].mean()
-        ax_h1 = sns.distplot(df_clean.ClosePrice)
-        ax_h1.axvline(mean, color='r', linestyle='-')
-        json_h1 = json.dumps(mpld3.fig_to_dict(fig_h1))
-
-        fig_h2, ax_h2 = plt.subplots()
-        mean2 = df_clean['EstFinAbvGrdSqFt'].mean()
-        ax_h2 = sns.distplot(df_clean.EstFinAbvGrdSqFt)
-        ax_h2.axvline(mean2, color='r', linestyle='-')
-        json_h2 = json.dumps(mpld3.fig_to_dict(fig_h2))
 
         fig_bar1, ax_bar1 = plt.subplots()
         keys1 = list(df_clean.BathsFull)
@@ -303,10 +291,63 @@ def upload():
         fig_bar3 = ax_bar3[0].figure
         json_bar3 = json.dumps(mpld3.fig_to_dict(fig_bar3))
 
+        # Histogram plot
+        fig_h1, ax_h1 = plt.subplots()
+        mean = df_clean['ClosePrice'].mean()
+        ax_h1 = sns.distplot(df_clean.ClosePrice)
+        ax_h1.axvline(mean, color='r', linestyle='-')
+        json_h1 = json.dumps(mpld3.fig_to_dict(fig_h1))
+
+        fig_h2, ax_h2 = plt.subplots()
+        mean2 = df_clean['EstFinAbvGrdSqFt'].mean()
+        ax_h2 = sns.distplot(df_clean.EstFinAbvGrdSqFt)
+        ax_h2.axvline(mean2, color='r', linestyle='-')
+        json_h2 = json.dumps(mpld3.fig_to_dict(fig_h2))
+
+        #heatmap
+        cor_data = cor_data[['variable','variable2','correlation_label']]
+        #cor_data.set_index('variable',inplace=True)
+        cor_data['variable'] = cor_data['variable'].astype('str')
+        cor_data['variable2'] = cor_data['variable2'].astype('str')
+        cor_data['correlation_label'] = cor_data['correlation_label'].astype('float')
+        result = cor_data.pivot(index='variable', columns='variable2', values='correlation_label')
+        column_labels = list(cor_data.variable2)
+        row_labels = ['Closing Price']
+        print(result.values)
+        fig_hm, ax_hm = plt.subplots()
+        im = ax_hm.imshow(result.values)
+        #ax_hm.set_xticklabels(column_labels)
+        #ax_hm.set_yticklabels(row_labels)
+        plt.setp(ax_hm.get_xticklabels(), rotation=45, ha="right",rotation_mode="anchor")
+        fig_hm.tight_layout()
+
+        print((np.array(result.values[0]))[0])
+        print(result.values[0,0])
+
+
+
+
+        ax_hm.pcolor(result.values, cmap=plt.cm.Reds)
+        #ax_hm.set_xticks(np.arange(result.shape[0]) + 0.5, minor=False)
+        #ax_hm.set_yticks(np.arange(result.shape[1]) + 0.5, minor=False)
+        #ax_hm.set_frame_on(False)
+        #ax_hm.axes.get_yaxis().set_visible(False)
+        #fig_hm.tight_layout()
+
+
+        #ax_hm.set_xticklabels(column_labels, minor=False)
+        #ax_hm.set_yticklabels(row_labels, minor=False)
+        ax_hm.invert_yaxis()
+
+        json_hm = json.dumps(mpld3.fig_to_dict(fig_hm))
+        #plt.show()
+
+
+
 
         #summary.to_html(classes='male')
 
-        return render_template('upload.html', tables=[Combined_table.to_html(classes='male')], json01=json01, json02=json02, json03=json03, json04=json04, json_h1=json_h1,json_h2=json_h2,json_bar1=json_bar1,json_bar2=json_bar2,json_bar3=json_bar3, PercentageofDSaleswithSellerConcessions=PercentageofDSaleswithSellerConcessions, AverageSellerConcessionAmount=AverageSellerConcessionAmount,AverageSellerConcessionPercent=AverageSellerConcessionPercent,MedianSellerConcessionAmount=MedianSellerConcessionAmount)
+        return render_template('upload.html', tables=[Combined_table.to_html(classes='male')], json01=json01, json02=json02, json03=json03, json04=json04, json_h1=json_h1,json_h2=json_h2,json_bar1=json_bar1,json_bar2=json_bar2,json_bar3=json_bar3,json_hm=json_hm, PercentageofDSaleswithSellerConcessions=PercentageofDSaleswithSellerConcessions, AverageSellerConcessionAmount=AverageSellerConcessionAmount,AverageSellerConcessionPercent=AverageSellerConcessionPercent,MedianSellerConcessionAmount=MedianSellerConcessionAmount)
     return render_template('upload.html')
 
 
